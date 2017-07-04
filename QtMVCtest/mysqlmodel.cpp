@@ -1,4 +1,5 @@
 #include "mysqlmodel.h"
+#include "tabletypes.h"
 
 MySqlModel::MySqlModel(QObject *parent) :
      QAbstractItemModel(parent)
@@ -10,6 +11,9 @@ MySqlModel::MySqlModel(QObject *parent) :
     mPageCount = 0;
     mMaxRowPerpage = 100;
     mCurrentPage = 0;
+
+    mAdvancedKey = NULL;
+    mQuery = NULL;
 }
 
 MySqlModel::~MySqlModel()
@@ -122,6 +126,28 @@ void MySqlModel::setCurrentPage(const int num)
     emit currentPageChanged(num);
 }
 
+QSqlDatabase MySqlModel::getDb()
+{
+    QString connName = "qt_table_mysql_conn";
+    QSqlDatabase db;
+    if (QSqlDatabase::contains(connName))
+        db = QSqlDatabase::database(connName);
+    else
+        db = QSqlDatabase::addDatabase(connName);
+    db.setHostName("127.0.0.1");
+    db.setPort(3306);
+    db.setUserName("root");
+    db.setPassword("1234");
+    db.open();
+}
+
+void MySqlModel::setQuery(QSqlQuery *q)
+{
+    if (mQuery)
+        delete mQuery;
+    mQuery = q;
+}
+
 void MySqlModel::toNextPage()
 {
     toPage(mCurrentPage + 1);
@@ -152,6 +178,16 @@ void MySqlModel::toPage(const int page)
     }
 }
 
+void MySqlModel::setAdvancedKey(Table *key)
+{
+    mAdvancedKey = key;
+}
+
+void MySqlModel::getRowInfo(Table *key)
+{
+
+}
+
 bool MySqlModel::doSelect()
 {
     // 重置参数
@@ -162,7 +198,7 @@ bool MySqlModel::doSelect()
     mCurrentPage = 0;
 
     // 连接数据库
-    QString cnctName = "qt_mysql_conn";
+    QString cnctName = "qt_table_mysql_conn";
     QSqlDatabase db;
     if (QSqlDatabase::contains(cnctName))
         db = QSqlDatabase::database(cnctName);

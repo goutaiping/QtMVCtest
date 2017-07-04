@@ -16,23 +16,14 @@
 #include <QtSql>
 #include <QTextDocument>
 
-class DBTable {
-public:
-    DBTable() {}
-    virtual bool isValid() { return true; }
-    qint64 id;
-};
-
-class Person : public DBTable {
-    Person() : DBTable() {}
-};
+class Table;
 
 class MySqlModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-    MySqlModel(QObject *parent = 0);
+    explicit MySqlModel(QObject *parent = 0);
     virtual ~MySqlModel();
 
     // 重写
@@ -57,14 +48,10 @@ public slots:
     int maxRowPerpage() const
     { return mMaxRowPerpage; }
 
+    void setMaxRowPerpage(const int count);
+
     int currentPage() const
     { return mCurrentPage; }
-
-protected:
-    void setResultCount(const int count);
-    void setPageCount(const int count);
-    void setMaxRowPerpage(const int count);
-    void setCurrentPage(const int num);
 
     void toNextPage();          /* 下一页 */
     void toPrevPage();          /* 上一页 */
@@ -72,14 +59,22 @@ protected:
     void toLastPage();          /* 尾页 */
     void toPage(const int page); /* 转到第page页 */
 
+    virtual void setAdvancedKey(Table *key); /* 设置查询关键字 */
+    virtual void getRowInfo(Table *key);
+    virtual qint64 getRowInfoId(const int row);
+    virtual void print(QTextDocument *doc);
+
+protected:
+    void setResultCount(const int count);
+    void setPageCount(const int count);
+    void setCurrentPage(const int num);
+    QSqlDatabase getDb();
+
     bool doSelect();
 
     // 1.获取查询总结果数,赋值给mResultCount
     // 2.分页查询,获取当前页的结果数据
-    virtual bool selectByAdvacedKey() = 0;
-
-    virtual qint64 getRowInfoId(const int row);
-    virtual void print(QTextDocument *doc);
+    virtual bool selectByAdvacedKey();
 
 signals:
     void currentPageChanged(int page);
@@ -87,7 +82,7 @@ signals:
     void pageCountChanged(int count);
 
 protected:
-    mutable QSqlQuery   mQuery;                         /* 保存查询结果的查询器 */
+    mutable QSqlQuery   *mQuery;                         /* 保存查询结果的查询器 */
     int                             mRowCount;                      /* 查询器中当前的行数 */
     int                             mColumnCount;               /* 查询器中当前的列数 */
 
@@ -98,6 +93,7 @@ protected:
     int                             mMaxRowPerpage;         /* 每页最多显示的查询结果数 */
     int                             mCurrentPage;                       /* 当前显示的页号 */
 
+    Table                    *mAdvancedKey;          /* 查询关键字 */
 };
 
 #endif // MYSQLMODEL_H

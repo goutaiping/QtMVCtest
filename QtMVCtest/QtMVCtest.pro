@@ -16,11 +16,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         dialog.cpp \
     mysqlmodel.cpp \
-    mysqltablefrm.cpp
+    mysqltablefrm.cpp \
+    tabletypes.cpp \
+    studentsqlmodel.cpp \
+    studenttablefrm.cpp
 
 HEADERS  += dialog.h \
     mysqlmodel.h \
-    mysqltablefrm.h
+    mysqltablefrm.h \
+    tabletypes.h \
+    studentsqlmodel.h \
+    studenttablefrm.h
 
 FORMS    += dialog.ui \
     mysqltablefrm.ui
