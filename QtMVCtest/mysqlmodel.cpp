@@ -141,13 +141,6 @@ QSqlDatabase MySqlModel::getDb()
     db.open();
 }
 
-void MySqlModel::setQuery(QSqlQuery *q)
-{
-    if (mQuery)
-        delete mQuery;
-    mQuery = q;
-}
-
 void MySqlModel::toNextPage()
 {
     toPage(mCurrentPage + 1);
