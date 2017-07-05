@@ -53,6 +53,9 @@ public slots:
     int currentPage() const
     { return mCurrentPage; }
 
+    int offset()
+    { return mCurrentPage * mMaxRowPerpage; }
+
     void toNextPage();          /* 下一页 */
     void toPrevPage();          /* 上一页 */
     void toFirstPage();         /* 首页 */

@@ -19,14 +19,19 @@ SOURCES += main.cpp\
     mysqltablefrm.cpp \
     tabletypes.cpp \
     studentsqlmodel.cpp \
-    studenttablefrm.cpp
+    studenttablefrm.cpp \
+    pagedsqltablemodel.cpp \
+    pagedsqltableframe.cpp
 
 HEADERS  += dialog.h \
     mysqlmodel.h \
     mysqltablefrm.h \
     tabletypes.h \
     studentsqlmodel.h \
-    studenttablefrm.h
+    studenttablefrm.h \
+    pagedsqltablemodel.h \
+    pagedsqltableframe.h
 
 FORMS    += dialog.ui \
-    mysqltablefrm.ui
+    mysqltablefrm.ui \
+    pagedsqltableframe.ui

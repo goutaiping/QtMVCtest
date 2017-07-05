@@ -47,14 +47,17 @@ int MySqlModel::columnCount(const QModelIndex &parent) const
 
 QVariant MySqlModel::data(const QModelIndex &index, int role) const
 {
-    if (!mQuery.isSelect() || !index.isValid())
+    if (!mQuery)
+        return QVariant();
+
+    if (!mQuery->isSelect() || !index.isValid())
         return QVariant();
 
     switch (role) {
     case Qt::DisplayRole:
     case Qt::EditRole:
-        mQuery.seek(index.row());
-        return mQuery.value(index.column());
+        mQuery->seek(index.row());
+        return mQuery->value(index.column());
         break;
 
     default:
@@ -75,7 +78,8 @@ QVariant MySqlModel::headerData(int section, Qt::Orientation orientation, int ro
                 return mHorHeaderData.at(section);
             else
                 return QVariant();
-        }
+        } else
+            return QVariant();
         break;
 
     default:
@@ -93,8 +97,10 @@ bool MySqlModel::setHeaderData(int section, Qt::Orientation orientation, const Q
             if (section < mHorHeaderData.size()) {
                 mHorHeaderData.replace(section, value);
                 return true;
-            }
-        }
+            } else
+                return false;
+        } else
+            return false;
         break;
 
     default:
@@ -139,6 +145,7 @@ QSqlDatabase MySqlModel::getDb()
     db.setUserName("root");
     db.setPassword("1234");
     db.open();
+    return db;
 }
 
 void MySqlModel::toNextPage()
@@ -191,16 +198,7 @@ bool MySqlModel::doSelect()
     mCurrentPage = 0;
 
     // 连接数据库
-    QString cnctName = "qt_table_mysql_conn";
-    QSqlDatabase db;
-    if (QSqlDatabase::contains(cnctName))
-        db = QSqlDatabase::database(cnctName);
-    else
-        db = QSqlDatabase::addDatabase("QMYSQL", cnctName);
-    db.setHostName("127.0.0.1");
-    db.setPort(3306);
-    db.setUserName("root");
-    db.setPassword("1234");
+    QSqlDatabase db = getDb();
     if (!db.open())
         return false;
 
@@ -217,13 +215,13 @@ bool MySqlModel::doSelect()
         setPageCount(mResultCount / mMaxRowPerpage + 1);
 
     // 获取当前页的行数和列数
-    mRowCount = mQuery.size();
-    mColumnCount = mQuery.record().count();
+    mRowCount = mQuery->size();
+    mColumnCount = mQuery->record().count();
 
     // 获取水平表头数据
     mHorHeaderData.clear();
     for (int i = 0; i < mColumnCount; i ++) {
-        mHorHeaderData.append(mQuery.record().field(i).name());
+        mHorHeaderData.append(mQuery->record().field(i).name());
     }
 
     return true;

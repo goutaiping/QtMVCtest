@@ -2,6 +2,9 @@
 #include "ui_dialog.h"
 #include "mysqlmodel.h"
 #include "tabletypes.h"
+#include "pagedsqltableframe.h"
+#include "pagedsqltablemodel.h"
+#include <QHBoxLayout>
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
@@ -11,8 +14,19 @@ Dialog::Dialog(QWidget *parent) :
     mDlgProgress = new QProgressDialog(this);
 
 
+
     //insertRecord();
 
+    QHBoxLayout *hLay = new QHBoxLayout(this);
+    mFrmSqlTable = new PagedSqlTableFrame(this);
+    hLay->addWidget(mFrmSqlTable);
+
+    mFrmSqlTable->setModelQueryFields("*");
+    mFrmSqlTable->setModelQueryFilter("1");
+    mFrmSqlTable->setModelQueryOrderByFields("");
+    mFrmSqlTable->setModelQueryTable("student");
+
+    mFrmSqlTable->onFirstPage();
 }
 
 Dialog::~Dialog()

@@ -12,6 +12,8 @@ namespace Ui {
 class Dialog;
 }
 
+class PagedSqlTableFrame;
+class PagedSqlTableModel;
 
 class InsertRecordThread : public QThread
 {
@@ -51,6 +53,8 @@ private:
     Ui::Dialog *ui;
 
     QProgressDialog *mDlgProgress;
+
+    PagedSqlTableFrame *mFrmSqlTable;
 };
 
 #endif // DIALOG_H
