@@ -1,4 +1,5 @@
 #include "pagedsqltablemodel.h"
+#include <QDebug>
 
 PagedSqlTableModel::PagedSqlTableModel(QObject *parent) :
     QAbstractItemModel(parent)
@@ -10,9 +11,8 @@ PagedSqlTableModel::PagedSqlTableModel(QObject *parent) :
 
     mRstCount = 0;
     mPageCount = 0;
-    mMaxRowPerpage = 100;
+    mMaxRowPerpage = 1000;
     mCurPage = 0;
-
 }
 
 PagedSqlTableModel::~PagedSqlTableModel()
@@ -59,9 +59,13 @@ QVariant PagedSqlTableModel::data(const QModelIndex &index, int role) const
     switch (role) {
     case Qt::DisplayRole:
     case Qt::EditRole:
+    case Qt::ToolTipRole:
         mQuery->seek(index.row());
         return mQuery->value(index.column());
         break;
+
+    case Qt::SizeHintRole:
+        return QSize(100, 25);
 
     default:
         return QVariant();
@@ -76,7 +80,7 @@ QVariant PagedSqlTableModel::headerData(int section, Qt::Orientation orientation
     case Qt::DisplayRole:
     case Qt::EditRole:
         if (Qt::Vertical == orientation) {
-            return section;
+            return section + 1;
         } else {
             if (section < mHorHeaderData.size())
                 return mHorHeaderData.at(section);
@@ -110,6 +114,13 @@ bool PagedSqlTableModel::setHeaderData(int section, Qt::Orientation orientation,
         return false;
         break;
     }
+}
+
+void PagedSqlTableModel::beginSearch()
+{
+    mCurPage = 0;
+    emit currentPageChanged(mCurPage);
+    doSelect();
 }
 
 void PagedSqlTableModel::toFirstPage()
@@ -166,22 +177,22 @@ QSqlDatabase PagedSqlTableModel::getMySQLConn()
         db = QSqlDatabase::database(connName);
     else
         db = QSqlDatabase::addDatabase("QMYSQL", connName);
-    db.setHostName("127.0.0.1");
-    db.setPort(3306);
-    db.setUserName("root");
-    db.setPassword("1234");
-    db.setDatabaseName("QtSqlTableFrameworkTest");
-    db.open();
+    db.setHostName(mDbHost);
+    db.setPort(mDbPort);
+    db.setUserName(mDbUser);
+    db.setPassword(mDbPasswd);
+    if (!db.open())
+        qDebug() << db.lastError().text();
     return db;
 }
 
 bool PagedSqlTableModel::doSelect()
 {
     // 重置参数
-    mRowCount = 0;
-    mColumnCount = 0;
-    mRstCount = 0;
-    mPageCount = 0;
+//    mRowCount = 0;
+//    mColumnCount = 0;
+//    mRstCount = 0;
+//    mPageCount = 0;
 
     // 连接数据库
     QSqlDatabase db = getMySQLConn();
@@ -190,15 +201,25 @@ bool PagedSqlTableModel::doSelect()
 
     QString statement;
 
+    // 重新生成查询器
+    if (mQuery)
+        delete mQuery;
+    mQuery = new QSqlQuery(db);
+
     // 运行查询器, 获取记录总行数
-    QSqlQuery q(db);
+    if (!mQuery->exec(QString("use %1;").arg(mDbName))) {
+        qDebug() << mQuery->lastError().text();
+        return false;
+    }
     statement = QString("select count(1) from %1 where %2;")
             .arg(mQueryTable)
             .arg(mQueryFilter);
-    if (!q.exec(statement))
+    if (!mQuery->exec(statement)) {
+        qDebug() << mQuery->lastError().text();
         return false;
-    if (q.next())
-        setResultCount(q.value(0).toInt());
+    }
+    if (mQuery->next())
+        setResultCount(mQuery->value(0).toInt());
 
     // 运行查询器, 获取当前页的记录
     if (mQueryOrderByFields.isEmpty()) {
@@ -217,11 +238,13 @@ bool PagedSqlTableModel::doSelect()
                 .arg(mMaxRowPerpage)
                 .arg(offset());
     }
-    if (mQuery)
-        delete mQuery;
-    mQuery = new QSqlQuery(db);
-    if (!mQuery->exec(statement))
+
+    beginResetModel();
+    if (!mQuery->exec(statement)) {
+        qDebug() << mQuery->lastError().text();
         return false;
+    }
+    endResetModel();
 
     // 更新参数
     mRowCount = mQuery->size();
@@ -229,6 +252,11 @@ bool PagedSqlTableModel::doSelect()
     setPageCount(mRstCount % mMaxRowPerpage == 0 ?
                      mRstCount / mMaxRowPerpage :
                      mRstCount / mMaxRowPerpage + 1);
+
+    // 获取水平表头数据
+    mHorHeaderData.clear();
+    for (int i = 0; i < mQuery->record().count(); i ++)
+        mHorHeaderData.append(mQuery->record().fieldName(i));
 
     return true;
 }

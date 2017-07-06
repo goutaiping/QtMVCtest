@@ -15,23 +15,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         dialog.cpp \
-    mysqlmodel.cpp \
-    mysqltablefrm.cpp \
-    tabletypes.cpp \
-    studentsqlmodel.cpp \
-    studenttablefrm.cpp \
     pagedsqltablemodel.cpp \
-    pagedsqltableframe.cpp
+    pagedsqltableframe.cpp \
+    dbconfigdialog.cpp
 
 HEADERS  += dialog.h \
-    mysqlmodel.h \
-    mysqltablefrm.h \
-    tabletypes.h \
-    studentsqlmodel.h \
-    studenttablefrm.h \
     pagedsqltablemodel.h \
-    pagedsqltableframe.h
+    pagedsqltableframe.h \
+    dbconfigdialog.h
 
 FORMS    += dialog.ui \
     mysqltablefrm.ui \
-    pagedsqltableframe.ui
+    pagedsqltableframe.ui \
+    dbconfigdialog.ui

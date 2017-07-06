@@ -1,32 +1,26 @@
 #include "dialog.h"
 #include "ui_dialog.h"
-#include "mysqlmodel.h"
-#include "tabletypes.h"
 #include "pagedsqltableframe.h"
 #include "pagedsqltablemodel.h"
 #include <QHBoxLayout>
+#include <QMenu>
+#include "dbconfigdialog.h"
+#include <QMessageBox>
+
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Dialog)
+    ui(new Ui::Dialog),
+    mDbPort(3306)
 {
     ui->setupUi(this);
-    mDlgProgress = new QProgressDialog(this);
+    setWindowFlags(Qt::Window);
 
+    connect(ui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+            this, SLOT(onItemClicked(QTreeWidgetItem*,int)));
+    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(showTWMenu(QPoint)));
 
-
-    //insertRecord();
-
-    QHBoxLayout *hLay = new QHBoxLayout(this);
-    mFrmSqlTable = new PagedSqlTableFrame(this);
-    hLay->addWidget(mFrmSqlTable);
-
-    mFrmSqlTable->setModelQueryFields("*");
-    mFrmSqlTable->setModelQueryFilter("1");
-    mFrmSqlTable->setModelQueryOrderByFields("");
-    mFrmSqlTable->setModelQueryTable("student");
-
-    mFrmSqlTable->onFirstPage();
 }
 
 Dialog::~Dialog()
@@ -34,100 +28,92 @@ Dialog::~Dialog()
     delete ui;
 }
 
-void Dialog::createTable()
+void Dialog::onItemClicked(QTreeWidgetItem *item, int column)
 {
+    Q_UNUSED(column);
 
+    if (!item->parent())
+        return;
+
+    for (int i = 0; i < ui->stackedWidget->count(); i ++) {
+        QWidget *w = ui->stackedWidget->widget(i);
+        ui->stackedWidget->removeWidget(w);
+        delete w;
+    }
+
+    PagedSqlTableFrame *frm = new PagedSqlTableFrame(this);
+    frm->setModelDbName(item->parent()->text(0));
+    frm->setModelDbHost(mDbHost);
+    frm->setModelDbPort(mDbPort);
+    frm->setModelDbUser(mDbUser);
+    frm->setModelDbPasswd(mDbPasswd);
+    frm->setModelQueryFields("*");
+    frm->setModelQueryFilter("1");
+    frm->setModelQueryOrderByFields("");
+    frm->setModelQueryTable(item->text(0));
+
+    ui->stackedWidget->addWidget(frm);
+    frm->onBeginSearch();
 }
 
-void Dialog::insertRecord()
+void Dialog::showTWMenu(const QPoint &pos)
 {
-    InsertRecordThread *t = new InsertRecordThread(this);
-    connect(t, SIGNAL(sendStatus(QString)), mDlgProgress, SLOT(setLabelText(QString)));
-    connect(t, SIGNAL(sendProgressMaximum(int)), mDlgProgress, SLOT(setMaximum(int)));
-    connect(t, SIGNAL(sendProgressValue(int)), mDlgProgress, SLOT(setValue(int)));
-    connect(t, SIGNAL(started()), this, SLOT(onInsertRecordThreadStarted()));
-    connect(t, SIGNAL(finished()), this, SLOT(onInsertRecordThreadFinished()));
-    t->start();
+    Q_UNUSED(pos);
+
+    QMenu m(ui->treeWidget);
+    m.addAction(QString::fromLocal8Bit("新建连接"), this, SLOT(onNewConn()));
+    m.exec(QCursor::pos());
 }
 
-void Dialog::onInsertRecordThreadStarted()
+void Dialog::onNewConn()
 {
-    mDlgProgress->show();
-}
+    // 获取连接参数
+    DbConfigDialog dlg(this);
+    if (QDialog::Rejected == dlg.exec())
+        return;
+    mDbHost = dlg.host();
+    mDbPort = dlg.port();
+    mDbUser = dlg.user();
+    mDbPasswd = dlg.password();
 
-void Dialog::onInsertRecordThreadFinished()
-{
+    ui->treeWidget->clear();
 
-}
-
-void InsertRecordThread::run()
-{
-    // connect database
-    emit sendStatus("connecting database......");
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL", "qt_insert_mysql_conn");
-    db.setHostName("127.0.0.1");
-    db.setPort(3306);
-    db.setUserName("root");
-    db.setPassword("1234");
+    // 连接数据库
+    QString connName = "qt_mysql_getNewConn_conn";
+    QSqlDatabase db;
+    if (QSqlDatabase::contains(connName))
+        db = QSqlDatabase::database(connName);
+    else
+        db = QSqlDatabase::addDatabase("QMYSQL", connName);
+    db.setHostName(mDbHost);
+    db.setPort(mDbPort);
+    db.setUserName(mDbUser);
+    db.setPassword(mDbPasswd);
     if (!db.open()) {
-        emit sendStatus(db.lastError().text());
+        QMessageBox::information(this,
+                                 QString::fromLocal8Bit("提示"),
+                                 db.lastError().text(),
+                                 QMessageBox::Yes);
         return;
     }
-    emit sendStatus("connect database succeed");
 
-    // create database and table
-    emit sendStatus("create database and table......");
+    // 获取数据库列表
     QSqlQuery q(db);
-    QString dbName = "QtSqlTableFrameworkTest";
-    if (!runQuery(q, QString("drop database if exists %1;").arg(dbName)))
-        return;
-    if (!runQuery(q, QString("create database %1;").arg(dbName)))
-        return;
-    if (!runQuery(q, QString("use %1;").arg(dbName)))
-        return;
-    if (!runQuery(q,
-                "create table student("
-                "id varchar(48) not null primary key, "
-                "name varchar(32) not null, "
-                "sex enum('male', 'female') default 'male', "
-                "age tinyint default 0, "
-                "interests varchar(128) default null"
-                ");"
-                ))
-        return;
-    emit sendStatus("create database and table succeed");
-
-    // insert data
-    TableStudent p;
-    QString statement;
-    int finished = 0, total = 10000;
-    emit sendProgressMaximum(10000);
-    emit sendProgressValue(finished);
-    for (int i = 0; i < total; i ++) {
-        p.name.value = QString("Peter %1").arg(i);
-        if (i % 2 == 0)
-            p.sex.value = "male";
-        else
-            p.sex.value = "female";
-        p.age.value = i % 30;
-        p.interests.value = QString("run %1 meters every morning").arg(i);
-        statement = QString("insert into student(id, name, sex, age, interests) values(uuid(), '%1', '%2', %3, '%4');")
-                .arg(p.name.value.toString())
-                .arg(p.sex.value.toString())
-                .arg(p.age.value.toInt())
-                .arg(p.interests.value.toString());
-        if (!runQuery(q, statement))
-            return;
-
-        emit sendProgressValue(++ finished);
+    q.exec("show databases;");
+    while (q.next()) {
+        ui->treeWidget->addTopLevelItem(new QTreeWidgetItem(QStringList() << q.value(0).toString()));
     }
+
+    // 获取每个数据库的表
+    for (int i = 0; i < ui->treeWidget->topLevelItemCount(); i ++) {
+        if (!q.exec(QString("use %1;").arg(ui->treeWidget->topLevelItem(i)->text(0))))
+            continue;
+        q.exec("show tables;");
+        while (q.next()) {
+            ui->treeWidget->topLevelItem(i)->addChild(new QTreeWidgetItem(QStringList() << q.value(0).toString()));
+        }
+    }
+
 }
 
-bool InsertRecordThread::runQuery(QSqlQuery &q, const QString &statement)
-{
-    if (!q.exec(statement)) {
-        emit sendStatus(q.lastError().text());
-        return false;
-    }
-    return true;
-}
+

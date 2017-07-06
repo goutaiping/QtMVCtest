@@ -1,3 +1,13 @@
+/**************************************************************************
+ *
+ *  PagedSqlTableModel 类是一个基于Qt Model View Control框架的 Model(模型)类.
+ *  由用户自定义数据库查询语句的各部分,组成一个完成的查询语句.
+ *  该类运行查询语句,并将结果分页,同时提供跳到某一页的功能.
+ *  该类最好配合 PagedSqlTableFrame 使用.
+ *
+ *
+ * **************************************************************************/
+
 #ifndef PAGEDSQLTABLEMODEL_H
 #define PAGEDSQLTABLEMODEL_H
 
@@ -31,16 +41,22 @@ public slots:
     int currentPage() const     { return mCurPage; }
     void setMaxRowPerpage(const int count)  { mMaxRowPerpage = count; }
 
+    void beginSearch();                 /* 开始新的查询 */
     void toFirstPage();                 /* 转到首页 */
     void toPrevPage();                  /* 转到上一页 */
     void toNextPage();                  /* 转到下一页 */
     void toLastPage();                  /* 转到尾页 */
     void toPage(const int page);    /* 转到任意页 */
 
-    void setFields(const QString &fields)   { mQueryFields = fields; }
-    void setFilter(const QString &filter)   { mQueryFilter = filter; }
-    void setTable(const QString &table)     { mQueryTable = table; }
-    void setOrderByFields(const QString &fields) { mQueryOrderByFields = fields; }
+    void setFields(const QString &fields)                { mQueryFields = fields; }
+    void setFilter(const QString &filter)                   { mQueryFilter = filter; }
+    void setTable(const QString &table)                  { mQueryTable = table; }
+    void setOrderByFields(const QString &fields)    { mQueryOrderByFields = fields; }
+    void setDatabaseName(const QString &name)       { mDbName = name; }
+    void setDatabaseHost(const QString &host)        { mDbHost = host; }
+    void setDatabasePort(const int port)                    { mDbPort = port; }
+    void setDatabaseUser(const QString &user)           { mDbUser = user; }
+    void setDatabasePasswd(const QString &passwd)   { mDbPasswd = passwd; }
 
 private:
     void setResultCount(const int count);
@@ -70,10 +86,19 @@ private:
 
     QVariantList              mHorHeaderData;       /* 水平表头的数据 */
 
-    QString                     mQueryFilter;
-    QString                     mQueryFields;
-    QString                     mQueryTable;
-    QString                     mQueryOrderByFields;
+    // 组合后的查询语句为:
+    // SELECT mQueryFields FROM mQueryTable WHERE mQueryFilter LIMIT mMaxRowPerpage offset offset() order by mQueryOrderByFields.
+    // 如果mQueryOrderByFields为空,则不是用order by选项
+    QString                     mQueryFilter;           /* 查询语句的 条件过滤 部分,不能为空*/
+    QString                     mQueryFields;           /* 查询语句的 查询项 部分,不能为空 */
+    QString                     mQueryTable;            /* 查询语句的 表名 部分,不能为空 */
+    QString                     mQueryOrderByFields;    /* 查询语句的 排序项 部分,可以为空,为空时不是用排序项排序 */
+
+    QString                     mDbName;            /* 数据库名称 */
+    QString                     mDbHost;
+    int                             mDbPort;
+    QString                     mDbUser;
+    QString                     mDbPasswd;
 };
 
 #endif // PAGEDSQLTABLEMODEL_H

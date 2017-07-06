@@ -1,3 +1,11 @@
+/**************************************************************
+ *
+ * 该类配合 PagedSqlTableModel 使用,
+ * 可以显示 PagedSqlTableModel 模型中的查询结果信息以及分页信息,
+ * 同时界面提供翻页按钮,配合 PagedSqlTableModel 中的翻页功能使用.
+ *
+ * *************************************************************/
+
 #ifndef PAGEDSQLTABLEFRAME_H
 #define PAGEDSQLTABLEFRAME_H
 
@@ -20,6 +28,7 @@ public:
     ~PagedSqlTableFrame();
 
 public slots:
+    void onBeginSearch();
     void onFirstPage();
     void onPrevPage();
     void onNextPage();
@@ -28,12 +37,17 @@ public slots:
 
     void setResultCountLabel(int count);
     void setPageCountLabel(int count);
-    void setCurrentPageLabel(int count);
+    void setCurrentPageLabel(int page);
 
     void setModelQueryFields(const QString &fields);
     void setModelQueryFilter(const QString &filter);
     void setModelQueryTable(const QString &table);
     void setModelQueryOrderByFields(const QString &fields);
+    void setModelDbName(const QString &name);
+    void setModelDbHost(const QString &host);
+    void setModelDbPort(const int port);
+    void setModelDbUser(const QString &user);
+    void setModelDbPasswd(const QString &passwd);
 
 protected slots:
     void cleanPageButtons();

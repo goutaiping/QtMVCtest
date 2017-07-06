@@ -14,9 +14,11 @@ PagedSqlTableFrame::PagedSqlTableFrame(QWidget *parent) :
     connect(mModel, SIGNAL(resultCountChanged(int)), this, SLOT(setResultCountLabel(int)));
     connect(mModel, SIGNAL(pageCountChanged(int)), this, SLOT(setPageCountLabel(int)));
     connect(mModel, SIGNAL(currentPageChanged(int)), this, SLOT(setCurrentPageLabel(int)));
+    ui->treeView->setModel(mModel);
 
     // 初始化页号按钮工具条
     QHBoxLayout *hLay = new QHBoxLayout(ui->frame_pageButtons);
+    hLay->setContentsMargins(0, 0, 0, 0);
     mTbPageButtons = new QToolBar(this);
     hLay->addWidget(mTbPageButtons);
 
@@ -38,6 +40,11 @@ PagedSqlTableFrame::PagedSqlTableFrame(QWidget *parent) :
 PagedSqlTableFrame::~PagedSqlTableFrame()
 {
     delete ui;
+}
+
+void PagedSqlTableFrame::onBeginSearch()
+{
+    mModel->beginSearch();
 }
 
 void PagedSqlTableFrame::onFirstPage()
@@ -73,11 +80,12 @@ void PagedSqlTableFrame::setResultCountLabel(int count)
 void PagedSqlTableFrame::setPageCountLabel(int count)
 {
     ui->label_pageCount->setText(QString::fromLocal8Bit("%1 页,").arg(count));
+    createPageButtons();
 }
 
-void PagedSqlTableFrame::setCurrentPageLabel(int count)
+void PagedSqlTableFrame::setCurrentPageLabel(int page)
 {
-    ui->label_rstCount->setText(QString::fromLocal8Bit("当前第 %1 页").arg(count));
+    ui->label_curPage->setText(QString::fromLocal8Bit("当前第 %1 页").arg(page + 1));
 }
 
 void PagedSqlTableFrame::setModelQueryFields(const QString &fields)
@@ -98,6 +106,31 @@ void PagedSqlTableFrame::setModelQueryTable(const QString &table)
 void PagedSqlTableFrame::setModelQueryOrderByFields(const QString &fields)
 {
     mModel->setOrderByFields(fields);
+}
+
+void PagedSqlTableFrame::setModelDbName(const QString &name)
+{
+    mModel->setDatabaseName(name);
+}
+
+void PagedSqlTableFrame::setModelDbHost(const QString &host)
+{
+    mModel->setDatabaseHost(host);
+}
+
+void PagedSqlTableFrame::setModelDbPort(const int port)
+{
+    mModel->setDatabasePort(port);
+}
+
+void PagedSqlTableFrame::setModelDbUser(const QString &user)
+{
+    mModel->setDatabaseUser(user);
+}
+
+void PagedSqlTableFrame::setModelDbPasswd(const QString &passwd)
+{
+    mModel->setDatabasePasswd(passwd);
 }
 
 void PagedSqlTableFrame::cleanPageButtons()

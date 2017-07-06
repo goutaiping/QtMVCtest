@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QThread>
+#include <QListWidget>
+#include <QTreeWidget>
 
 namespace Ui {
 class Dialog;
@@ -14,26 +16,6 @@ class Dialog;
 
 class PagedSqlTableFrame;
 class PagedSqlTableModel;
-
-class InsertRecordThread : public QThread
-{
-    Q_OBJECT
-
-public:
-    InsertRecordThread(QObject *parent = 0)
-    {}
-    ~InsertRecordThread()
-    {}
-protected:
-    void run();
-
-    bool runQuery(QSqlQuery &q, const QString &statement);
-signals:
-    void sendStatus(const QString &status);
-    void sendProgressMaximum(int max);
-    void sendProgressValue(int value);
-};
-
 
 class Dialog : public QDialog
 {
@@ -44,17 +26,20 @@ public:
     ~Dialog();
 
 public slots:
-    void createTable();
-    void insertRecord();
-    void onInsertRecordThreadStarted();
-    void onInsertRecordThreadFinished();
+   void onItemClicked(QTreeWidgetItem *item, int column);
+   void showTWMenu(const QPoint &pos);
+
+   void onNewConn();
 
 private:
     Ui::Dialog *ui;
 
-    QProgressDialog *mDlgProgress;
-
     PagedSqlTableFrame *mFrmSqlTable;
+
+    QString mDbHost;
+    int         mDbPort;
+    QString mDbUser;
+    QString mDbPasswd;
 };
 
 #endif // DIALOG_H
