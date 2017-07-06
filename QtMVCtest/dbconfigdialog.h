@@ -20,6 +20,11 @@ public:
     QString user();
     QString password();
 
+    void setHost(const QString &host);
+    void setPort(const int port);
+    void setUser(const QString &user);
+    void setPassword(const QString &passwd);
+
 private:
     Ui::DbConfigDialog *ui;
 };

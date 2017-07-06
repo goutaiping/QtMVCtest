@@ -35,3 +35,23 @@ QString DbConfigDialog::password()
 {
     return ui->lineEdit_passwd->text();
 }
+
+void DbConfigDialog::setHost(const QString &host)
+{
+    ui->lineEdit_host->setText(host);
+}
+
+void DbConfigDialog::setPort(const int port)
+{
+    ui->lineEdit_port->setText(QString::number(port));
+}
+
+void DbConfigDialog::setUser(const QString &user)
+{
+    ui->lineEdit_user->setText(user);
+}
+
+void DbConfigDialog::setPassword(const QString &passwd)
+{
+    ui->lineEdit_passwd->setText(passwd);
+}

@@ -16,8 +16,8 @@ Dialog::Dialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::Window);
 
-    connect(ui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-            this, SLOT(onItemClicked(QTreeWidgetItem*,int)));
+    connect(ui->treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
+            this, SLOT(onTableChanged(QTreeWidgetItem*,QTreeWidgetItem*)));
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)),
             this, SLOT(showTWMenu(QPoint)));
 
@@ -28,11 +28,11 @@ Dialog::~Dialog()
     delete ui;
 }
 
-void Dialog::onItemClicked(QTreeWidgetItem *item, int column)
+void Dialog::onTableChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-    Q_UNUSED(column);
+    Q_UNUSED(previous);
 
-    if (!item->parent())
+    if (!current->parent())
         return;
 
     for (int i = 0; i < ui->stackedWidget->count(); i ++) {
@@ -42,7 +42,7 @@ void Dialog::onItemClicked(QTreeWidgetItem *item, int column)
     }
 
     PagedSqlTableFrame *frm = new PagedSqlTableFrame(this);
-    frm->setModelDbName(item->parent()->text(0));
+    frm->setModelDbName(current->parent()->text(0));
     frm->setModelDbHost(mDbHost);
     frm->setModelDbPort(mDbPort);
     frm->setModelDbUser(mDbUser);
@@ -50,10 +50,11 @@ void Dialog::onItemClicked(QTreeWidgetItem *item, int column)
     frm->setModelQueryFields("*");
     frm->setModelQueryFilter("1");
     frm->setModelQueryOrderByFields("");
-    frm->setModelQueryTable(item->text(0));
+    frm->setModelQueryTable(current->text(0));
 
     ui->stackedWidget->addWidget(frm);
     frm->onBeginSearch();
+    ui->stackedWidget->setCurrentWidget(frm);
 }
 
 void Dialog::showTWMenu(const QPoint &pos)
@@ -62,6 +63,7 @@ void Dialog::showTWMenu(const QPoint &pos)
 
     QMenu m(ui->treeWidget);
     m.addAction(QString::fromLocal8Bit("新建连接"), this, SLOT(onNewConn()));
+    m.addAction(QString::fromLocal8Bit("查看当前连接参数"), this, SLOT(onCheckDbConfig()));
     m.exec(QCursor::pos());
 }
 
@@ -69,6 +71,7 @@ void Dialog::onNewConn()
 {
     // 获取连接参数
     DbConfigDialog dlg(this);
+    dlg.setWindowTitle(QString::fromLocal8Bit("新建连接"));
     if (QDialog::Rejected == dlg.exec())
         return;
     mDbHost = dlg.host();
@@ -114,6 +117,17 @@ void Dialog::onNewConn()
         }
     }
 
+}
+
+void Dialog::onCheckDbConfig()
+{
+    DbConfigDialog dlg(this);
+    dlg.setWindowTitle(QString::fromLocal8Bit("当前连接参数"));
+    dlg.setHost(mDbHost);
+    dlg.setPort(mDbPort);
+    dlg.setUser(mDbUser);
+    dlg.setPassword(mDbPasswd);
+    dlg.exec();
 }
 
 

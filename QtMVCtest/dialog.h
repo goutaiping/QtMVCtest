@@ -26,10 +26,11 @@ public:
     ~Dialog();
 
 public slots:
-   void onItemClicked(QTreeWidgetItem *item, int column);
+   void onTableChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
    void showTWMenu(const QPoint &pos);
 
    void onNewConn();
+   void onCheckDbConfig();
 
 private:
     Ui::Dialog *ui;
