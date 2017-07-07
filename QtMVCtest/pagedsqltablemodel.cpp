@@ -189,10 +189,10 @@ QSqlDatabase PagedSqlTableModel::getMySQLConn()
 bool PagedSqlTableModel::doSelect()
 {
     // 重置参数
-//    mRowCount = 0;
-//    mColumnCount = 0;
-//    mRstCount = 0;
-//    mPageCount = 0;
+    mRowCount = 0;
+    mColumnCount = 0;
+    mRstCount = 0;
+    mPageCount = 0;
 
     // 连接数据库
     QSqlDatabase db = getMySQLConn();

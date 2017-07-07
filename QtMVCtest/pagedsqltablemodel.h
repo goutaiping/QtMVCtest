@@ -76,16 +76,21 @@ signals:
 
 private:
     mutable QSqlQuery *mQuery;                  /* 模型的数据源,保存查询结果的查询器 */
+
+    // 当前页
     int                             mRowCount;              /* 查询结果的行数 */
     int                             mColumnCount;       /* 查询结果的列数 */
 
+    // 分页参数
     int                             mRstCount;              /* 查询结果总条数 */
     int                             mPageCount;             /* 查询结果总页数 */
     int                             mMaxRowPerpage;     /* 每页最多结果数 */
     int                             mCurPage;                 /* 当前页,最小为 0,最大等于总页数 - 1  */
 
+    // 表头
     QVariantList              mHorHeaderData;       /* 水平表头的数据 */
 
+    // 数据库查询器查询语句参数
     // 组合后的查询语句为:
     // SELECT mQueryFields FROM mQueryTable WHERE mQueryFilter LIMIT mMaxRowPerpage offset offset() order by mQueryOrderByFields.
     // 如果mQueryOrderByFields为空,则不是用order by选项
@@ -94,11 +99,12 @@ private:
     QString                     mQueryTable;            /* 查询语句的 表名 部分,不能为空 */
     QString                     mQueryOrderByFields;    /* 查询语句的 排序项 部分,可以为空,为空时不是用排序项排序 */
 
+    // 数据库连接参数
     QString                     mDbName;            /* 数据库名称 */
-    QString                     mDbHost;
-    int                             mDbPort;
-    QString                     mDbUser;
-    QString                     mDbPasswd;
+    QString                     mDbHost;            /* 数据库主机地址(IP) */
+    int                             mDbPort;            /* 数据库端口 */
+    QString                     mDbUser;            /* 数据库用户名 */
+    QString                     mDbPasswd;          /* 数据库用户密码 */
 };
 
 #endif // PAGEDSQLTABLEMODEL_H

@@ -25,6 +25,5 @@ HEADERS  += dialog.h \
     dbconfigdialog.h
 
 FORMS    += dialog.ui \
-    mysqltablefrm.ui \
     pagedsqltableframe.ui \
     dbconfigdialog.ui
