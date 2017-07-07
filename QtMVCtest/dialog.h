@@ -26,21 +26,31 @@ public:
     ~Dialog();
 
 public slots:
-   void onTableChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+   void onCurrentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+   void onItemDoubleClicked(QTreeWidgetItem *item, int column);
    void showTWMenu(const QPoint &pos);
 
-   void onNewConn();
+   void onCreateConn();
+   void onDeleteConn();
    void onCheckDbConfig();
+
+   void loadIni();
+
+protected:
+   enum ItemType {
+       ConnectionItem,
+       DatabaseItem,
+       TableItem
+   };
+   QTreeWidgetItem *createConnectionItem(const QStringList &strings);
+   QTreeWidgetItem *createDatabaseItem(const QStringList &strings, QTreeWidgetItem *connItem);
+   QTreeWidgetItem *createTableItem(const QStringList &strings, QTreeWidgetItem *databaseItem);
+   int getItemType(QTreeWidgetItem *item);
 
 private:
     Ui::Dialog *ui;
 
     PagedSqlTableFrame *mFrmSqlTable;
-
-    QString mDbHost;
-    int         mDbPort;
-    QString mDbUser;
-    QString mDbPasswd;
 };
 
 #endif // DIALOG_H

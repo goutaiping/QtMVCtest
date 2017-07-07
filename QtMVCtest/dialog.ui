@@ -27,7 +27,7 @@
      </property>
      <column>
       <property name="text">
-       <string>数据库列表</string>
+       <string>连接</string>
       </property>
      </column>
     </widget>

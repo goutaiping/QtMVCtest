@@ -15,11 +15,13 @@ public:
     explicit DbConfigDialog(QWidget *parent = 0);
     ~DbConfigDialog();
 
+    QString connName();
     QString host();
     int port();
     QString user();
     QString password();
 
+    void setConnName(const QString &name);
     void setHost(const QString &host);
     void setPort(const int port);
     void setUser(const QString &user);

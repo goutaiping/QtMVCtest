@@ -1,5 +1,8 @@
 #include "dbconfigdialog.h"
 #include "ui_dbconfigdialog.h"
+#include <QSettings>
+
+
 
 DbConfigDialog::DbConfigDialog(QWidget *parent) :
     QDialog(parent),
@@ -14,6 +17,11 @@ DbConfigDialog::DbConfigDialog(QWidget *parent) :
 DbConfigDialog::~DbConfigDialog()
 {
     delete ui;
+}
+
+QString DbConfigDialog::connName()
+{
+    return ui->lineEdit_connName->text();
 }
 
 QString DbConfigDialog::host()
@@ -34,6 +42,11 @@ QString DbConfigDialog::user()
 QString DbConfigDialog::password()
 {
     return ui->lineEdit_passwd->text();
+}
+
+void DbConfigDialog::setConnName(const QString &name)
+{
+    ui->lineEdit_connName->setText(name);
 }
 
 void DbConfigDialog::setHost(const QString &host)

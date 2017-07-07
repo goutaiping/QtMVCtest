@@ -17,12 +17,14 @@ SOURCES += main.cpp\
         dialog.cpp \
     pagedsqltablemodel.cpp \
     pagedsqltableframe.cpp \
-    dbconfigdialog.cpp
+    dbconfigdialog.cpp \
+    iniloader.cpp
 
 HEADERS  += dialog.h \
     pagedsqltablemodel.h \
     pagedsqltableframe.h \
-    dbconfigdialog.h
+    dbconfigdialog.h \
+    iniloader.h
 
 FORMS    += dialog.ui \
     pagedsqltableframe.ui \
